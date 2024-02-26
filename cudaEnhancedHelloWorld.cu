@@ -1,4 +1,4 @@
-/* CUDA HelloWorld++.cu
+/* cudaEnhancedHelloWorld.cu
 
 Based on the simplest example C program from the classic exposition of C,
 Kernighan and Ritchie, The C Programming Language, this is an enhancement
