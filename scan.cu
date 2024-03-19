@@ -16,12 +16,12 @@ __global__ void scanFloat(float a[], const int n){
   int m=1; 
   while ( n > m ){
     if ( i%(2*m) >= m ){
-      index=i-(i%(2*m))+m-1;
+      int index=i-(i%(2*m))+m-1;
       if (index >= 0)
         a[i]+=a[index];
     }
     m*=2;
-    sync_threads();
+    __syncthreads();
   }
 }
 
