@@ -66,26 +66,28 @@ code may be obtained
 
 __global__ void helloWorldKernel();
 
+#define checkError(command)       errCheck2((command),#command,__FILE__,__LINE__)
+
+inline void errCheck2(int command, const char *commandString, const char *file, int line){
+    int value=command;
+    if ( value != cudaSuccess ){
+      printf("%s  in file %s at line %d \n", commandString, file, line);
+      printf("Error: program aborting.\n");
+      exit(0);
+    }
+}
+
 int main(){
-  cudaError_t err;
   cudaDeviceProp prop;
   int count;
 
-  err=cudaGetDeviceCount (&count);
-  if (err != cudaSuccess ){
-    printf("Error: cudaGetDeviceCount call failed.\n");
-    exit(0);
-  }
+  checkError(cudaGetDeviceCount (&count));
   if(count==0){
     printf("Error: No CUDA enabled devices found.\n");
-    exit(0);
+    exit(-1);
   }
   for(int device=0;device<count;device++){
-    err=cudaGetDeviceProperties (&prop, device);
-    if (err != cudaSuccess){
-      printf("Error: unable to probe device %d.\n",device);
-      exit(0);
-    } 
+    checkError(cudaGetDeviceProperties (&prop, device));
     printf("Device number %d has compute capability %d.%d.",device, prop.major, prop.minor);
   }
   
@@ -97,16 +99,10 @@ int main(){
       best_device=0;
   } else {
       best_device=0;
-      err=cudaGetDeviceProperties (&prop, best_device);
-      if (err != cudaSuccess){
-        printf("Error: unable to probe device %d.\n", best_device);
-        exit(0);}
+      checkError(cudaGetDeviceProperties (&prop, best_device));
       best_major=prop.major, best_minor=prop.minor;
       for(int device=1;device<count;device++){
-         err=cudaGetDeviceProperties (&prop, device);
-         if (err != cudaSuccess){
-           printf("Error: unable to probe device %d.\n", best_device);
-           exit(0);}
+         checkError(cudaGetDeviceProperties (&prop, device));
          major=prop.major; minor=prop.minor;
          bool better=false;
          if ( major>best_major )
@@ -116,27 +112,21 @@ int main(){
              better=true;
          if (better){
            best_device=device;
-           err=cudaGetDeviceProperties (&prop, best_device);
-           if (err != cudaSuccess){
-             printf("Error: unable to probe device %d.\n", best_device);
-             exit(0);}
+           checkError(cudaGetDeviceProperties (&prop, best_device));
            best_major=prop.major, best_minor=prop.minor;
          }
       }
   }
   printf("Best device = %d.\n",best_device); 
 
-  err=cudaSetDevice(best_device); 
-  if (err != cudaSuccess){
-    printf("Error: cudaSetDevice failed.\n");
-    exit(0);
-  }
+  checkError(cudaSetDevice(best_device)); 
 
   printf("Hello world. This is the host.\n"); 
   
   printf("Calling kernel function on device.\n"); 
   helloWorldKernel<<<1,10>>>();
   printf("Returning from kernel function on device.\n"); 
+  checkError(cudaDeviceSynchronize());
 
   return 0;
 }
