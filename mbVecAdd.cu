@@ -25,8 +25,7 @@ to be able to achieve significant speedup.
 #include <time.h>
 #include <math.h>
 
-//#define DIM (64*1024*1024)     // 64 MB long vector
-#define DIM (64*512*1024)     // 64 MB long vector
+#define DIM (64*512*1024)     // 128 MB vector (32 M elements) 
 
 __global__ void addVectorsKernel(float *c_d, float *a_d,float *b_d, int sz);
 
@@ -101,15 +100,12 @@ int main(){
   // Launch grid of processes on device to carry out computation 
   // -----------------------------------------------------------
 
-  cudaEvent_t     startBis;
-  cudaEvent_t     stopBis;
   float time_ms;
+  cudaEvent_t     startBis,  stopBis;
+  errCheck(cudaEventCreate(&startBis));
+  errCheck(cudaEventCreate(&stopBis));
 
-  cudaEventCreate(&startBis);
-  cudaEventCreate(&stopBis);
-
-  clock_t start=clock();
-  cudaEventRecord(startBis, 0);
+  errCheck(cudaEventRecord(startBis, 0));
   int sz=DIM;
   int threadsPerBlock=1024;
   int numBlocks=ceil(DIM/threadsPerBlock);
@@ -120,30 +116,24 @@ int main(){
      printf("CUDA Error: %s\n", cudaGetErrorString(err));   
      exit(0); 
   }  
-  cudaDeviceSynchronize();
-  clock_t end=clock();
-
-  cudaEventRecord(stopBis, 0);
-  cudaEventSynchronize(stopBis);
+  errCheck(cudaEventRecord(stopBis, 0));
+  errCheck(cudaEventSynchronize(stopBis));
   cudaEventElapsedTime(&time_ms, startBis, stopBis);
-  printf("TimingBis = %g\n", time_ms);
-
-
-  float timing= ( (float) (end-start) )/( (float) CLOCKS_PER_SEC );
-  printf("Kernel function time= %e secs. \n",timing);
-  printf("CLOCKS_PER_SEC= %d\n", CLOCKS_PER_SEC);
+  printf("Kernel function time (ms) = %g\n", time_ms);
 
   // Copy data back from device to host
-
-  cudaMemcpy(c_h, c_d, DIM*sizeof(float), cudaMemcpyDeviceToHost);
+  errCheck(cudaMemcpy(c_h, c_d, DIM*sizeof(float), cudaMemcpyDeviceToHost));
      // same syntax as above and last argument indicates direction of transfer 
 
   // Compare result with host function 
 
   double c_h2[DIM];
+  clock_t tStart=clock();
   for(int i=0; i<DIM; i++)
     c_h2[i]=a_h[i]+b_h[i]; 
-    
+  clock_t tEnd=clock();
+  float timeH_ms=(1000.*(tEnd-tStart))/((float) CLOCKS_PER_SEC );
+  printf("Host time (ms) = %e\n",timeH_ms);
   float eps=1.e-8;
   bool same=true;
   for(int i=0; i<DIM; i++)
@@ -161,5 +151,4 @@ __global__ void addVectorsKernel(float *c_d, float *a_d,float *b_d, int sz){
   int index=blockDim.x*blockIdx.x+threadIdx.x; 
   c_d[index]= a_d[index]+ b_d[index];
 }
-
 

@@ -70,7 +70,7 @@ int main(){
   errCheck(cudaEventCreate(&stopBis));
 
   errCheck(cudaEventRecord(startBis, 0));
-  matmul_tiled<<<gridDim,blockDim>>>(DIM, a_d, b_d, ab_d); 
+  matmul_naive<<<gridDim,blockDim>>>(DIM, a_d, b_d, ab_d); 
   cudaError_t err = cudaGetLastError(); // ERROR CHECKING
   errCheck(cudaEventRecord(stopBis, 0));
   if ( err != cudaSuccess ){
@@ -121,24 +121,16 @@ int main(){
 } 
 
 
-// below we assume that the matrix dimension is divisible by DIM_TILE
-__global__ void matmul_tiled(int N, const float *A, const float *B, float *AB) {
-
-  __shared__ float tile_a[DIM_TILE*DIM_TILE], tile_b[DIM_TILE*DIM_TILE];
-
-  int i=threadIdx.x, j=threadIdx.y;                             // indices within tile
-  int i_block=DIM_TILE*blockIdx.x, j_block=DIM_TILE*blockIdx.y; // tile offsets
-  float sum=0.;
-  for(int n=0; n<DIM_GRID; n++){                                // sum over blocks
-    int n_block=DIM_TILE*n;                                         // tile offset
-    // copy tiles
-    tile_a[i*DIM_TILE+j]=A[DIM*(i+i_block)+(j+n_block)];
-    tile_b[i*DIM_TILE+j]=B[DIM*(i+n_block)+(j+j_block)];
-    __syncthreads();  // sync needed as each thread copies one element but elements copied by other threads are needed below
-    for(int k=0;k<DIM_TILE;k++)   // accumulate a_tile@b_tile[i,j] to sum 
-      sum+=tile_a[i*DIM_TILE+k]*tile_b[k*DIM_TILE+j];
-    __syncthreads();  // make sure all threads are done before proceeding to copy new tiles
+__global__ void matmul_naive(int N, const float *A, const float *B, float *AB) {
+  // compute position in AB that this thread is responsible for
+  const uint x = blockIdx.x * blockDim.x + threadIdx.x;
+  const uint y = blockIdx.y * blockDim.y + threadIdx.y;
+  // `if` condition is necessary for N is not a multiples of 32
+  if (x < N && y < N) {
+    float sum = 0.0;
+    for (int i = 0; i < N; ++i)
+      sum += A[x * N + i] * B[i * N + y];
+    AB[x * N + y] = sum;
   }
-  AB[(i+i_block)*DIM_TILE*DIM_GRID+(j+j_block)]=sum; 
-} 
+}
 
