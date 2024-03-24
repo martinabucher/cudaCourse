@@ -3,7 +3,13 @@
 
 NVCC=/usr/local/cuda-12/bin/nvcc
 
-all: cudaEnhancedHelloWorld cudaEnhancedHelloWorldBis mbVecAdd scan cudaEnhancedHelloWorldTer matmul_driver matmulTiled_driver my_reduce
+SRC=$(shell ls *.cu)
+
+EXECUTABLES=${SRC:.cu=}
+
+#all: cudaEnhancedHelloWorld cudaEnhancedHelloWorldBis mbVecAdd scan cudaEnhancedHelloWorldTer matmul_driver matmulTiled_driver my_reduce
+
+all: ${EXECUTABLES}
 
 # NVCCFLAGS= -g -gencode arch=compute_70,code=sm_70 -gencode arch=compute_75,code=sm_75
 NVCCFLAGS= -O3 -gencode arch=compute_70,code=sm_70 -gencode arch=compute_75,code=sm_75
