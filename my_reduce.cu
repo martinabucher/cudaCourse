@@ -1,5 +1,16 @@
-
 #include <stdio.h>
+
+
+#define errCheck(command)       errCheck2((command),#command,__FILE__,__LINE__)
+
+inline void errCheck2(int command, const char *commandString, const char *file, int line){
+    int value=command;
+    if ( value != cudaSuccess ){
+      printf("%s  in file %s at line %d \n", commandString, file, line);
+      printf("Error: program aborting.\n");
+      exit(0);
+    }
+}
 
 __device__ void reduce_sum(float *s, const int n, float *sum);
 __global__ void testReduceSum(float* s, const int n, float *result);
@@ -40,17 +51,22 @@ int main(void){
   float* s_d; 
   float *result_d;
   float result_h;
-  cudaMalloc((void **) &s_d, size);
-  cudaMalloc((void **) &result_d,sizeof(float));
+  errCheck(cudaMalloc((void **) &s_d, size));
+  errCheck(cudaMalloc((void **) &result_d,sizeof(float)));
   float s_h[size];
   float local_sum=0.; 
   for(int j=0;j<n;j++){
     s_h[j]=(float) (j+1); 
     local_sum+=s_h[j];}
   printf("Expected sum is equal to %f \n", local_sum);
-  cudaMemcpy(s_d, s_h, size, cudaMemcpyHostToDevice);
+  errCheck(cudaMemcpy(s_d, s_h, size, cudaMemcpyHostToDevice));
   testReduceSum<<<block_dim,thread_dim>>>(s_d,n,result_d); 
-  cudaMemcpy(&result_h, result_d, sizeof(float), cudaMemcpyDeviceToHost);
+  cudaError_t err = cudaGetLastError();
+  if ( err != cudaSuccess ){
+     printf("CUDA Error: %s\n", cudaGetErrorString(err));
+     exit(-1);
+  }
+  errCheck(cudaMemcpy(&result_h, result_d, sizeof(float), cudaMemcpyDeviceToHost));
   printf("CUDA sum is equal to %f \n", result_h);
 }
 
