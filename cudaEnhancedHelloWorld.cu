@@ -38,18 +38,18 @@ int main(){
   err=cudaGetDeviceCount(&count);
   if (err != cudaSuccess ){
     printf("Error: cudaGetDeviceCount call failed.\n");
-    exit(0);
+    exit(-1);
   }
   if (count==0){
     printf("Error: No CUDA enabled devices found.\n");
-    exit(0);
+    exit(-1);
   }
   printf("Found %d CUDA enabled devices.\n",count);
   for(device=0;device<count;device++){
     err=cudaGetDeviceProperties(&prop, device);
     if (err != cudaSuccess){
       printf("Error: unable to probe device %d.\n",device);
-      exit(0);
+      exit(-1);
     } 
     printf("Device number %d has compute capability %d.%d.\n",device, prop.major, prop.minor);
   }
@@ -65,14 +65,14 @@ int main(){
       err=cudaGetDeviceProperties (&prop, best_device);
       if (err != cudaSuccess){
         printf("Error: unable to probe device %d.\n", best_device);
-        exit(0);}
+        exit(-1);}
       best_major=prop.major;
       best_minor=prop.minor;
       for(device=1;device<count;device++){
          err=cudaGetDeviceProperties (&prop, device);
          if (err != cudaSuccess){
            printf("Error: unable to probe device %d.\n", best_device);
-           exit(0);}
+           exit(-1);}
          major=prop.major; minor=prop.minor;
          bool better=false;
          if ( major>best_major )
@@ -85,7 +85,7 @@ int main(){
            err=cudaGetDeviceProperties (&prop, best_device);
            if (err != cudaSuccess){
              printf("Error: unable to probe device %d.\n", best_device);
-             exit(0);}
+             exit(-1);}
            best_major=prop.major, best_minor=prop.minor;
          }
       }
@@ -95,7 +95,7 @@ int main(){
   err=cudaSetDevice(best_device); 
   if (err != cudaSuccess){
     printf("Error: cudaSetDevice failed.\n");
-    exit(0);
+    exit(-1);
   }
 
   printf("Hello world. This is the host.\n"); 
@@ -107,7 +107,7 @@ int main(){
   err = cudaGetLastError();
   if ( err != cudaSuccess ){
      printf("CUDA Error: %s\n", cudaGetErrorString(err));       
-     exit(0); 
+     exit(-1); 
   }
 
   return 0;

@@ -7,7 +7,7 @@ EXECUTABLES=${SRC:.cu=}
 
 all: ${EXECUTABLES}
 
-NVCCFLAGS= -O3 -gencode arch=compute_70,code=sm_70 -gencode arch=compute_75,code=sm_75
+NVCCFLAGS= -O3 -gencode arch=compute_70,code=sm_70 -gencode arch=compute_75,code=sm_75  -std=c++11 
 
 %:%.cu 
 	$(NVCC) -o $@ $(NVCCFLAGS) $<

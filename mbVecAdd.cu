@@ -38,7 +38,7 @@ inline void errCheck2(int command, const char *commandString, const char *file, 
     if ( value != cudaSuccess ){
       printf("%s  in file %s at line %d \n", commandString, file, line); 
       printf("Error: program aborting.\n");
-      exit(0); 
+      exit(-1); 
     }
 }
 
@@ -60,7 +60,7 @@ int main(){
 
   if ( a_h == NULL || b_h == NULL || c_h == NULL ){
     printf("Error: malloc failed. Exiting.\n"); 
-    exit(0);  //  'exit' is defined in stdlib.h --- the program is terminated with return status 0 here, meaning successful completion. 
+    exit(-1);  //  'exit' is defined in stdlib.h --- the program is terminated with return status -1 here, meaning unsuccessful completion. 
   }
 
   // Now we use the random number generator of the C Standard Library to generte random input data. 
@@ -114,7 +114,7 @@ int main(){
   cudaError_t err = cudaGetLastError();
   if ( err != cudaSuccess ){
      printf("CUDA Error: %s\n", cudaGetErrorString(err));   
-     exit(0); 
+     exit(-1); 
   }  
   errCheck(cudaEventRecord(stopBis, 0));
   errCheck(cudaEventSynchronize(stopBis));

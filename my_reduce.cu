@@ -8,7 +8,7 @@ inline void errCheck2(int command, const char *commandString, const char *file, 
     if ( value != cudaSuccess ){
       printf("%s  in file %s at line %d \n", commandString, file, line);
       printf("Error: program aborting.\n");
-      exit(0);
+      exit(-1);
     }
 }
 
