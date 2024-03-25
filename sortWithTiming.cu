@@ -9,8 +9,8 @@
 #include "helper.cuh" 
 
 
-/* This is the kernel that will run in paralel on the GPU
-* we use the blocks this time to paralellise since there are only 1024 threads in a block
+/* This is the kernel that will run in paralel on the GPU.
+* We use the blocks this time to paralellise since there are only 1024 threads in a block
 * and the overlap in the brick sort will be a problem on odd sorts larger than 1024!
 */
 __global__ void oddevenRefactor(int* x, int I, int n)
@@ -31,14 +31,7 @@ cudaError_t outputDeviceProperties(int best_device)
     //cudaError_t cudaStatus;
     // read the device properties and print them to console
     cudaDeviceProp prop;
-    //cudaStatus = cudaGetDeviceProperties_v2(&prop, 1);
-    errCheck(
-    cudaGetDeviceProperties_v2(&prop, best_device));
-    //cudaStatus = cudaGetDeviceProperties_v2(&prop, 0);
-    //if (cudaStatus != cudaSuccess) {
-    //    fprintf(stderr, "addWithCuda failed!");
-    //    return cudaStatus;
-    //}
+    errCheck(cudaGetDeviceProperties_v2(&prop, best_device));
     printf("Global memory size: %zu\n", prop.totalGlobalMem);
     printf("L2 cache size: %d\n", prop.l2CacheSize);
     printf("Clock rate: %d\n", prop.clockRate);
@@ -46,13 +39,12 @@ cudaError_t outputDeviceProperties(int best_device)
     printf("Blocks per multiprocessor: %d\n", prop.maxBlocksPerMultiProcessor);
     printf("Max threads per block: %d\n", prop.maxThreadsPerBlock);
     printf("Warp size: %d\n", prop.warpSize);
-    //return cudaStatus;
     return cudaSuccess;
 
 }
 
 /*
-* perform the search and time it
+  Perform the search and time it
 */
 float sortAndTime(int* inputData,int* outputData, int size, int threadsPerBlock) {
     // start and stop variables
