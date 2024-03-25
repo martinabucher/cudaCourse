@@ -29,22 +29,26 @@ to be able to achieve significant speedup.
 
 __global__ void addVectorsKernel(float *c_d, float *a_d,float *b_d, int sz);
 
+#include "helper.cuh" 
+
 // The following is a placeholder:
  
-#define errCheck(command)       errCheck2((command),#command,__FILE__,__LINE__)
-
-inline void errCheck2(int command, const char *commandString, const char *file, int line){
-    int value=command; 
-    if ( value != cudaSuccess ){
-      printf("%s  in file %s at line %d \n", commandString, file, line); 
-      printf("Error: program aborting.\n");
-      exit(-1); 
-    }
-}
+//#define errCheck(command)       errCheck2((command),#command,__FILE__,__LINE__)
+//
+//inline void errCheck2(int command, const char *commandString, const char *file, int line){
+//    int value=command; 
+//    if ( value != cudaSuccess ){
+//      printf("%s  in file %s at line %d \n", commandString, file, line); 
+//      printf("Error: program aborting.\n");
+//      exit(-1); 
+//    }
+//}
 
 int main(){
-  
 
+  int best_device=get_best_device(); 
+  errCheck(cudaSetDevice(best_device)); 
+	
   // Create data (and vector to copy back result) 
   // -------------------------------------------
 
