@@ -1,21 +1,15 @@
-
 #include <stdio.h>
 
-#define errCheck(command)       errCheck2((command),#command,__FILE__,__LINE__)
-
-inline void errCheck2(int command, const char *commandString, const char *file, int line){
-    int value=command;
-    if ( value != cudaSuccess ){
-      printf("%s  in file %s at line %d \n", commandString, file, line);
-      printf("Error: program aborting.\n");
-      exit(-1);
-    }
-}
+#include "helper.cuh"
 
 __global__ void sum_squares(float* acc_d);
 __device__    void incrementFun(float *accumulator, const float increment);
 
 int main(){
+
+  int best_device=get_best_device();
+  errCheck(cudaSetDevice(best_device));
+
   const int n=10;
   float accumulator_h=0.;
   float *accumulator_d;

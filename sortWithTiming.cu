@@ -43,7 +43,8 @@ cudaError_t outputDeviceProperties()
     cudaError_t cudaStatus;
     // read the device properties and print them to console
     cudaDeviceProp prop;
-    cudaStatus = cudaGetDeviceProperties_v2(&prop, 1);
+    //cudaStatus = cudaGetDeviceProperties_v2(&prop, 1);
+    cudaStatus = cudaGetDeviceProperties_v2(&prop, 0);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "addWithCuda failed!");
         return cudaStatus;

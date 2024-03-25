@@ -3,27 +3,19 @@
 #include <time.h>
 #include <math.h>
 
+#include "helper.cuh"
+
 #define DIM_TILE   32
 #define DIM_GRID   64
 #define DIM    (DIM_TILE*DIM_GRID)
-
-// The following is a placeholder:
- 
-#define errCheck(command)       errCheck2((command),#command,__FILE__,__LINE__)
-
-inline void errCheck2(int command, const char *commandString, const char *file, int line){
-    int value=command; 
-    if ( value != cudaSuccess ){
-      fprintf(stderr,"%s  in file %s at line %d \n", commandString, file, line); 
-      fprintf(stderr,"Error: program aborting.\n");
-      exit(-1); 
-    }
-}
 
 __global__ void matmul_naive(int N, const float *A, const float *B, float *AB);
 __global__ void matmul_tiled(int N, const float *A, const float *B, float *AB);
 
 int main(){
+
+  int best_device=get_best_device();
+  errCheck(cudaSetDevice(best_device));
   
   dim3 gridDim (DIM_GRID, DIM_GRID,   1);
   dim3 blockDim(DIM_TILE, DIM_TILE,  1);

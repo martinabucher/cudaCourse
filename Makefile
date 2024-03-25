@@ -9,7 +9,7 @@ all: ${EXECUTABLES}
 
 NVCCFLAGS= -O3 -gencode arch=compute_70,code=sm_70 -gencode arch=compute_75,code=sm_75  -std=c++11 
 
-%:%.cu 
+%:%.cu helper.cuh
 	$(NVCC) -o $@ $(NVCCFLAGS) $<
 
 clean:

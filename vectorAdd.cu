@@ -1,5 +1,5 @@
-﻿#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
+﻿//#include "cuda_runtime.h"
+//#include "device_launch_parameters.h"
 
 #include <stdio.h>
 #include <string>
@@ -60,7 +60,9 @@ cudaError_t outputDeviceProperties()
     cudaError_t cudaStatus;
     // read the device properties and print them to console
     cudaDeviceProp prop;
-    cudaStatus = cudaGetDeviceProperties_v2(&prop, 1);
+    //cudaStatus = cudaGetDeviceProperties_v2(&prop, 1);
+    cudaStatus = cudaGetDeviceProperties_v2(&prop, 0);
+    //cudaStatus = cudaGetDeviceProperties(&prop,0);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "addWithCuda failed!");
         return cudaStatus;
@@ -94,7 +96,7 @@ cudaError_t addWithCudaLambdaError(int* c, const int* a, const int* b, unsigned 
     cudaError_t cudaStatus;
 
     // Choose which GPU to run on, change this on a multi-GPU system.
-    cudaStatus = cudaSetDevice(1);
+    cudaStatus = cudaSetDevice(0);
     if (cudaStatus != cudaSuccess) {
         return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?");
     }

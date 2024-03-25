@@ -1,16 +1,6 @@
 #include <stdio.h>
 
-
-#define errCheck(command)       errCheck2((command),#command,__FILE__,__LINE__)
-
-inline void errCheck2(int command, const char *commandString, const char *file, int line){
-    int value=command;
-    if ( value != cudaSuccess ){
-      printf("%s  in file %s at line %d \n", commandString, file, line);
-      printf("Error: program aborting.\n");
-      exit(-1);
-    }
-}
+#include "helper.cuh"
 
 __device__ void reduce_sum(float *s, const int n, float *sum);
 __global__ void testReduceSum(float* s, const int n, float *result);
@@ -44,6 +34,10 @@ __global__ void testReduceSum(float* s, const int n, float *result){
 }
 
 int main(void){
+
+  int best_device=get_best_device(); 
+  errCheck(cudaSetDevice(best_device)); 
+
   const int thread_dim=10;
   const int block_dim =10;
   int n=100; 
