@@ -1,27 +1,15 @@
 ﻿
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
+//#include "cuda_runtime.h"
+//#include "device_launch_parameters.h"
 
 #include <stdio.h>
 #include <random>
 #include <fstream>
 
+#include "helper.cuh" 
 
 
-// error checking and reporting helper function
-#define errCheck(command)       errCheck2((command),#command,__FILE__,__LINE__)
-
-inline void errCheck2(int command, const char* commandString, const char* file, int line) {
-    int value = command;
-    if (value != cudaSuccess) {
-        fprintf(stderr, "%s  in file %s at line %d \n", commandString, file, line);
-        fprintf(stderr, "Error: program aborting.\n");
-        cudaDeviceReset();
-        exit(-1);
-    }
-}
-
-/* this is the kernel that will run in paralel on the GPU
+/* This is the kernel that will run in paralel on the GPU
 * we use the blocks this time to paralellise since there are only 1024 threads in a block
 * and the overlap in the brick sort will be a problem on odd sorts larger than 1024!
 */
@@ -38,17 +26,19 @@ __global__ void oddevenRefactor(int* x, int I, int n)
     }
 }
 
-cudaError_t outputDeviceProperties()
+cudaError_t outputDeviceProperties(int best_device)
 {
-    cudaError_t cudaStatus;
+    //cudaError_t cudaStatus;
     // read the device properties and print them to console
     cudaDeviceProp prop;
     //cudaStatus = cudaGetDeviceProperties_v2(&prop, 1);
-    cudaStatus = cudaGetDeviceProperties_v2(&prop, 0);
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "addWithCuda failed!");
-        return cudaStatus;
-    }
+    errCheck(
+    cudaGetDeviceProperties_v2(&prop, best_device));
+    //cudaStatus = cudaGetDeviceProperties_v2(&prop, 0);
+    //if (cudaStatus != cudaSuccess) {
+    //    fprintf(stderr, "addWithCuda failed!");
+    //    return cudaStatus;
+    //}
     printf("Global memory size: %zu\n", prop.totalGlobalMem);
     printf("L2 cache size: %d\n", prop.l2CacheSize);
     printf("Clock rate: %d\n", prop.clockRate);
@@ -56,7 +46,8 @@ cudaError_t outputDeviceProperties()
     printf("Blocks per multiprocessor: %d\n", prop.maxBlocksPerMultiProcessor);
     printf("Max threads per block: %d\n", prop.maxThreadsPerBlock);
     printf("Warp size: %d\n", prop.warpSize);
-    return cudaStatus;
+    //return cudaStatus;
+    return cudaSuccess;
 
 }
 
@@ -163,6 +154,9 @@ float sortAndTimeCPU(int* inputData, int* outputData, int size) {
 
 int main()
 {
+    int best_device=get_best_device(); 
+    errCheck(cudaSetDevice(best_device)); 
+
     // maximum size of array that we will allow in this program
     const int MAX_ARRAY_SIZE = 262144;
     // input arrays, size
@@ -184,7 +178,7 @@ int main()
         a[i] = distr(gen);
     }
 
-    errCheck(outputDeviceProperties());
+    errCheck(outputDeviceProperties(best_device));
     
     // output arrays
     int* aOut = new int[MAX_ARRAY_SIZE];

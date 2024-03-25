@@ -4,8 +4,10 @@
 #include <stdio.h>
 #include <string>
 
+#include "helper.cuh"
+
 cudaError_t addWithCudaLambdaError(int* c, const int* a, const int* b, unsigned int size);
-cudaError_t outputDeviceProperties();
+cudaError_t outputDeviceProperties(int best_device);
 
 
 // this is the kernel that will run in paralel on the GPU
@@ -15,17 +17,21 @@ __global__ void addKernel(int* c, const int* a, const int* b)
     c[i] = a[i] + b[i];
 }
 
-int main()
-{
+int main(){
+
+  int best_device=get_best_device(); 
+  errCheck(cudaSetDevice(best_device)); 
+
     // error variable to catch anything reported by cuda functions
-    cudaError_t cudaStatus;
+    //cudaError_t cudaStatus;
 
     // read and print the properties of the CUDA device to the console
-    cudaStatus = outputDeviceProperties();
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "Failed reading device properties!");
-        return 1;
-    }
+    errCheck(outputDeviceProperties(best_device));
+    // cudaStatus = outputDeviceProperties(best_device);
+    // if (cudaStatus != cudaSuccess) {
+    //    fprintf(stderr, "Failed reading device properties!");
+    //    return 1;
+    //}
 
     // set up our data that we want to use on the GPU for the parallel calculation
     const int arraySize = 5;
@@ -34,11 +40,12 @@ int main()
     int c[arraySize] = { 0 };
 
     // Add vectors in parallel on the GPU using the helper function
-    cudaStatus = addWithCudaLambdaError(c, a, b, arraySize);
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "addWithCuda failed!");
-        return 1;
-    }
+    errCheck(addWithCudaLambdaError(c, a, b, arraySize));
+    //cudaStatus = addWithCudaLambdaError(c, a, b, arraySize);
+    //if (cudaStatus != cudaSuccess) {
+    //    fprintf(stderr, "addWithCuda failed!");
+    //    return 1;
+    //}
 
     // output the results of the operation to the console
     printf("{1,2,3,4,5} + {10,20,30,40,50} = {%d,%d,%d,%d,%d}\n",
@@ -46,27 +53,29 @@ int main()
 
     // cudaDeviceReset must be called before exiting in order for profiling and
     // tracing tools such as Nsight and Visual Profiler to show complete traces.
-    cudaStatus = cudaDeviceReset();
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaDeviceReset failed!");
-        return 1;
-    }
+    errCheck(cudaDeviceReset());
+    //cudaStatus = cudaDeviceReset();
+    //if (cudaStatus != cudaSuccess) {
+    //    fprintf(stderr, "cudaDeviceReset failed!");
+    //    return 1;
+    //}
 
     return 0;
 }
 
-cudaError_t outputDeviceProperties()
+cudaError_t outputDeviceProperties(int best_device)
 {
-    cudaError_t cudaStatus;
+    //cudaError_t cudaStatus;
     // read the device properties and print them to console
     cudaDeviceProp prop;
     //cudaStatus = cudaGetDeviceProperties_v2(&prop, 1);
-    cudaStatus = cudaGetDeviceProperties_v2(&prop, 0);
+    //cudaStatus = cudaGetDeviceProperties_v2(&prop, best_device);
+    errCheck(cudaGetDeviceProperties_v2(&prop, best_device));
     //cudaStatus = cudaGetDeviceProperties(&prop,0);
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "addWithCuda failed!");
-        return cudaStatus;
-    }
+    //if (cudaStatus != cudaSuccess) {
+    //    fprintf(stderr, "addWithCuda failed!");
+    //    return cudaStatus;
+    //}
     printf("Global memory size: %zu\n", prop.totalGlobalMem);
     printf("L2 cache size: %d\n", prop.l2CacheSize);
     printf("Clock rate: %d\n", prop.clockRate);
@@ -74,21 +83,22 @@ cudaError_t outputDeviceProperties()
     printf("Blocks per multiprocessor: %d\n", prop.maxBlocksPerMultiProcessor);
     printf("Max threads per block: %d\n", prop.maxThreadsPerBlock);
     printf("Warp size: %d\n", prop.warpSize);
-    return cudaStatus;
+    //return cudaStatus;
+    return cudaSuccess;
 
 }
 
 cudaError_t addWithCudaLambdaError(int* c, const int* a, const int* b, unsigned int size)
 {
 
-    // lambda expression to clear memory and return exit message
-    auto exitWithStatus = [](int* a, int* b, int* c, cudaError_t errstate, std::string errmsg = "") {
-        cudaFree(c);
-        cudaFree(a);
-        cudaFree(b);
-        if (errmsg != "") { fprintf(stderr, errmsg.c_str()); };
-        return errstate;
-        };
+    //// lambda expression to clear memory and return exit message
+    //auto exitWithStatus = [](int* a, int* b, int* c, cudaError_t errstate, std::string errmsg = "") {
+    //    cudaFree(c);
+    //    cudaFree(a);
+    //    cudaFree(b);
+    //    if (errmsg != "") { fprintf(stderr, errmsg.c_str()); };
+    //    return errstate;
+    //    };
 
     int* dev_a = 0;
     int* dev_b = 0;
@@ -96,61 +106,70 @@ cudaError_t addWithCudaLambdaError(int* c, const int* a, const int* b, unsigned 
     cudaError_t cudaStatus;
 
     // Choose which GPU to run on, change this on a multi-GPU system.
-    cudaStatus = cudaSetDevice(0);
-    if (cudaStatus != cudaSuccess) {
-        return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?");
-    }
+    //cudaStatus = cudaSetDevice(0);
+    //if (cudaStatus != cudaSuccess) {
+    //    return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?");
+    //}
 
     // Allocate GPU buffers for three vectors (two input, one output)    .
-    cudaStatus = cudaMalloc((void**)&dev_c, size * sizeof(int));
-    if (cudaStatus != cudaSuccess) {
-        return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, "cudaMalloc failed!");
-    }
+    errCheck(cudaMalloc((void**)&dev_c, size * sizeof(int)));
+    //cudaStatus = cudaMalloc((void**)&dev_c, size * sizeof(int));
+    //if (cudaStatus != cudaSuccess) {
+    //    return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, "cudaMalloc failed!");
+    //}
 
-    cudaStatus = cudaMalloc((void**)&dev_a, size * sizeof(int));
-    if (cudaStatus != cudaSuccess) {
-        return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, "cudaMalloc failed!");
-    }
+    errCheck(cudaMalloc((void**)&dev_a, size * sizeof(int)));
+    //cudaStatus = cudaMalloc((void**)&dev_a, size * sizeof(int));
+    //if (cudaStatus != cudaSuccess) {
+    //    return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, "cudaMalloc failed!");
+    //}
 
-    cudaStatus = cudaMalloc((void**)&dev_b, size * sizeof(int));
-    if (cudaStatus != cudaSuccess) {
-        return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, "cudaMalloc failed!");
-    }
+    errCheck(cudaMalloc((void**)&dev_b, size * sizeof(int)));
+    //cudaStatus = cudaMalloc((void**)&dev_b, size * sizeof(int));
+    //if (cudaStatus != cudaSuccess) {
+    //    return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, "cudaMalloc failed!");
+    //}
 
     // Copy input vectors from host memory to GPU buffers.
-    cudaStatus = cudaMemcpy(dev_a, a, size * sizeof(int), cudaMemcpyHostToDevice);
-    if (cudaStatus != cudaSuccess) {
-        return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, "cudaMemcpy failed!");
-    }
+    errCheck( cudaStatus = cudaMemcpy(dev_a, a, size * sizeof(int), cudaMemcpyHostToDevice));
+    //cudaStatus = cudaMemcpy(dev_a, a, size * sizeof(int), cudaMemcpyHostToDevice);
+    //if (cudaStatus != cudaSuccess) {
+    //    return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, "cudaMemcpy failed!");
+    //}
 
-    cudaStatus = cudaMemcpy(dev_b, b, size * sizeof(int), cudaMemcpyHostToDevice);
-    if (cudaStatus != cudaSuccess) {
-        return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, "cudaMemcpy failed!");
-    }
+    errCheck(cudaStatus = cudaMemcpy(dev_b, b, size * sizeof(int), cudaMemcpyHostToDevice));
+    //cudaStatus = cudaMemcpy(dev_b, b, size * sizeof(int), cudaMemcpyHostToDevice);
+    //if (cudaStatus != cudaSuccess) {
+    //    return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, "cudaMemcpy failed!");
+    //}
 
     // Launch a kernel on the GPU with one thread for each element.
     addKernel << <1, size >> > (dev_c, dev_a, dev_b);
 
     // Check for any errors launching the kernel
-    cudaStatus = cudaGetLastError();
-    if (cudaStatus != cudaSuccess) {
-        return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, std::string("addKernel launch failed: %s\n", cudaGetErrorString(cudaStatus)));
-    }
+    errCheck( cudaGetLastError());
+    //cudaStatus = cudaGetLastError();
+    //if (cudaStatus != cudaSuccess) {
+    //    return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, std::string("addKernel launch failed: %s\n", cudaGetErrorString(cudaStatus)));
+    //}
 
     // cudaDeviceSynchronize waits for the kernel to finish, and returns
     // any errors encountered during the launch.
-    cudaStatus = cudaDeviceSynchronize();
-    if (cudaStatus != cudaSuccess) {
-        return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, std::string("cudaDeviceSynchronize returned error code %d after launching addKernel!\n", cudaStatus));
-    }
+    errCheck(cudaDeviceSynchronize());
+    //cudaStatus = cudaDeviceSynchronize();
+    //if (cudaStatus != cudaSuccess) {
+    //    return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, std::string("cudaDeviceSynchronize returned error code %d after launching addKernel!\n", cudaStatus));
+    //}
 
     // Copy output vector from GPU buffer to host memory.
-    cudaStatus = cudaMemcpy(c, dev_c, size * sizeof(int), cudaMemcpyDeviceToHost);
-    if (cudaStatus != cudaSuccess) {
-        return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, "cudaMemcpy failed!");
-    }
+    errCheck(cudaMemcpy(c, dev_c, size * sizeof(int), cudaMemcpyDeviceToHost));
+    //cudaStatus = cudaMemcpy(c, dev_c, size * sizeof(int), cudaMemcpyDeviceToHost);
+    //if (cudaStatus != cudaSuccess) {
+    //    return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus, "cudaMemcpy failed!");
+    //}
 
-    return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus);
+    // return exitWithStatus(dev_a, dev_b, dev_c, cudaStatus);
+    return cudaStatus; 
 }
 
 

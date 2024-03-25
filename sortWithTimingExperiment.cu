@@ -1,26 +1,12 @@
 ﻿
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
+//#include "cuda_runtime.h"
+//#include "device_launch_parameters.h"
 
 #include <stdio.h>
 #include <random>
 #include <fstream>
 
-
-
-// error checking and reporting helper function
-#define errCheck(command)       errCheck2((command),#command,__FILE__,__LINE__)
-
-inline void errCheck2(int command, const char* commandString, const char* file, int line) {
-    int value = command;
-    if (value != cudaSuccess) {
-        fprintf(stderr, "%s  in file %s at line %d \n", commandString, file, line);
-        fprintf(stderr, "Error: program aborting.\n");
-        cudaDeviceReset();
-        exit(-1);
-    }
-}
-
+#include "helper.cuh"
 
 /* this is the kernel that will run in paralel on the GPU
 * we use the blocks this time to paralellise since there are only 1024 threads in a block
@@ -141,8 +127,12 @@ float sortAndTimeCPU(int* inputData, int* outputData, int size) {
 
 
 
-int main()
-{
+int main(){
+
+  int best_device=get_best_device(); 
+  errCheck(cudaSetDevice(best_device)); 
+	
+
     printf("starting experiment...\n");
 
     // run the experiment up till 135168
