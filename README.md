@@ -1,4 +1,4 @@
-# cudaCourse
+# cudaCourse (Profs Martin Bucher and Japie Greeff)
 
 ## Makefile
 
