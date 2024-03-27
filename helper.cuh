@@ -24,7 +24,7 @@ inline int get_best_device(){
   }
   for(int device=0;device<count;device++){
     errCheck(cudaGetDeviceProperties (&prop, device));
-    printf("Device number %d has compute capability %d.%d.",device, prop.major, prop.minor);
+    printf("Device number %d has compute capability %d.%d.\n",device, prop.major, prop.minor);
   }
 
   // Choose available device with the highest compute capability.

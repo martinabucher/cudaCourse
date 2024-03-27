@@ -80,7 +80,7 @@ int main(){
   // Compare result with host function 
 
   clock_t start=clock();
-  float ab_h2[DIM*DIM];
+  float* ab_h2=(float*) malloc(DIM*DIM*sizeof(float));
   for(int i=0; i<DIM; i++)
     for(int j=0; j<DIM; j++){
       float sum=0.0;
