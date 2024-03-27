@@ -33,6 +33,7 @@ inline int get_best_device(){
   int major, minor, best_major, best_minor;
   if (count == 1 ){
       best_device=0;
+      best_major=prop.major, best_minor=prop.minor;
   } else {
       best_device=0;
       errCheck(cudaGetDeviceProperties (&prop, best_device));

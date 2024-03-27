@@ -118,7 +118,11 @@ int main(){
 
   // Compare result with host function 
 
-  double c_h2[DIM];
+  float* c_h2=(float*) malloc(DIM*sizeof(float));
+  if ( c_h2 == NULL ){
+    printf("Error: malloc failed. Exiting.\n"); 
+    exit(-1);  
+  }
   clock_t tStart=clock();
   for(int i=0; i<DIM; i++)
     c_h2[i]=a_h[i]+b_h[i]; 
