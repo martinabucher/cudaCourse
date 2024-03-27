@@ -38,8 +38,8 @@ int main(void){
   int best_device=get_best_device(); 
   errCheck(cudaSetDevice(best_device)); 
 
-  const int thread_dim=10;
-  const int block_dim =10;
+  const int thread_dim=100;
+  const int block_dim =1;
   int n=100; 
   size_t size=n*sizeof(float);
   float* s_d; 

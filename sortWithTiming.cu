@@ -156,7 +156,7 @@ int main()
     int n;
     // read from console how many elements the input array should have and bound check it
     printf("Enter how many elements of input array (max %d):", MAX_ARRAY_SIZE);
-    scanf("%d", &n);
+    int err=scanf("%d", &n);
     n = std::min(n, MAX_ARRAY_SIZE);
 
     // c++ standard way of getting random numbers in a uniform distribution using the Mercine Twister engine
